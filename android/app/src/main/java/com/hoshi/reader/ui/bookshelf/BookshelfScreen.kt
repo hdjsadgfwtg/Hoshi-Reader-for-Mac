@@ -61,6 +61,8 @@ import java.io.File
 fun BookshelfScreen(
     onBookClick: (String) -> Unit,
     onAnkiSettingsClick: () -> Unit = {},
+    pendingImportUri: Uri? = null,
+    onImportUriConsumed: () -> Unit = {},
     viewModel: BookshelfViewModel = hiltViewModel()
 ) {
     val books by viewModel.books.collectAsState()
@@ -73,6 +75,13 @@ fun BookshelfScreen(
         contract = ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let { viewModel.importEpub(it) }
+    }
+
+    LaunchedEffect(pendingImportUri) {
+        pendingImportUri?.let { uri ->
+            viewModel.importEpub(uri)
+            onImportUriConsumed()
+        }
     }
 
     LaunchedEffect(error) {

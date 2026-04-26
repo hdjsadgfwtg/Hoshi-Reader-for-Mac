@@ -1,6 +1,7 @@
 package com.hoshi.reader.ui.bookshelf
 
 import android.net.Uri
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.hoshi.reader.core.epub.EpubParser
@@ -45,9 +46,12 @@ class BookshelfViewModel @Inject constructor(
             _importing.value = true
             _error.value = null
             try {
+                Log.d("BookshelfVM", "importEpub: uri=$uri")
                 val (bookId, contentDir) = bookStorage.importEpub(uri)
+                Log.d("BookshelfVM", "importEpub: bookId=$bookId, contentDir=$contentDir")
                 val epubFile = File(bookStorage.getBookDir(bookId), "book.epub")
                 val result = epubParser.parse(epubFile, contentDir)
+                Log.d("BookshelfVM", "importEpub: title=${result.title}, chapters=${result.chapters.size}")
 
                 val metadata = BookMetadata(
                     id = bookId,
@@ -65,6 +69,7 @@ class BookshelfViewModel @Inject constructor(
 
                 loadBooks()
             } catch (e: Exception) {
+                Log.e("BookshelfVM", "importEpub failed", e)
                 _error.value = e.message ?: "Import failed"
             } finally {
                 _importing.value = false

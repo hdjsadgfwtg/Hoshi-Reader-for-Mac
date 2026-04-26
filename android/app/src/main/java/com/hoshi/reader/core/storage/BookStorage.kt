@@ -86,11 +86,20 @@ class BookStorage @Inject constructor(
         val bookDir = getBookDir(bookId)
         val epubFile = File(bookDir, "book.epub")
 
-        context.contentResolver.openInputStream(uri)?.use { input ->
-            FileOutputStream(epubFile).use { output ->
-                input.copyTo(output)
+        if (uri.scheme == "file") {
+            val sourceFile = File(uri.path!!)
+            sourceFile.inputStream().use { input ->
+                FileOutputStream(epubFile).use { output ->
+                    input.copyTo(output)
+                }
             }
-        } ?: throw IllegalStateException("Cannot open EPUB file")
+        } else {
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                FileOutputStream(epubFile).use { output ->
+                    input.copyTo(output)
+                }
+            } ?: throw IllegalStateException("Cannot open EPUB file")
+        }
 
         val contentDir = File(bookDir, "content")
         unzipEpub(epubFile, contentDir)

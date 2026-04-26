@@ -1,6 +1,9 @@
 package com.hoshi.reader.navigation
 
+import android.net.Uri
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,6 +18,7 @@ import com.hoshi.reader.ui.reader.ReaderScreen
 import com.hoshi.reader.ui.settings.AnkiSettingsScreen
 import com.hoshi.reader.ui.settings.AppearanceScreen
 import com.hoshi.reader.ui.settings.SettingsScreen
+import kotlinx.coroutines.flow.StateFlow
 
 object Routes {
     const val BOOKSHELF = "bookshelf"
@@ -30,9 +34,12 @@ object Routes {
 @Composable
 fun NavGraph(
     userConfig: UserConfig,
-    backupManager: BackupManager
+    backupManager: BackupManager,
+    pendingImportUri: StateFlow<Uri?>? = null,
+    onImportUriConsumed: () -> Unit = {}
 ) {
     val navController = rememberNavController()
+    val importUri = pendingImportUri?.collectAsState()?.value
 
     NavHost(
         navController = navController,
@@ -45,7 +52,9 @@ fun NavGraph(
                 },
                 onAnkiSettingsClick = {
                     navController.navigate(Routes.SETTINGS)
-                }
+                },
+                pendingImportUri = importUri,
+                onImportUriConsumed = onImportUriConsumed
             )
         }
 
